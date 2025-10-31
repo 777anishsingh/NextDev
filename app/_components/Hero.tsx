@@ -1,8 +1,12 @@
 "use client"
 import { Button } from '@/components/ui/button'
 import { SignInButton, useUser } from '@clerk/nextjs'
-import { ArrowUp, ArrowUpSquareIcon, HomeIcon, ImagePlus, Key, LayoutDashboard, User } from 'lucide-react'
+import axios from 'axios'
+import { ArrowUp, ArrowUpSquareIcon, HomeIcon, ImagePlus, Key, LayoutDashboard, Loader2, LoaderCircle, LucideLoader, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
+import { toast } from 'sonner'
+import { v4 as uuidv4 } from 'uuid'
 
 
 
@@ -30,8 +34,10 @@ const suggestion = [
     }
 ]
 
-
-
+const generateRandomFrameNumber = () => {
+    const num = Math.floor(Math.random() * 10000)
+    return num
+}
 
 
 
@@ -40,8 +46,46 @@ const Hero = () => {
 
     const [userInput, setUserInput] = useState<string>()
 
-
     const user = useUser()
+
+    const router = useRouter()
+
+    const [loading, setLoading] = useState(false)
+
+    const CreateNewProject = async () => {
+
+        setLoading(true)
+        const projectId = uuidv4()
+        const frameId = generateRandomFrameNumber()
+        const messages = [
+            {
+                role: 'user',
+                content: userInput
+            }
+        ]
+
+        try {
+            const result = await axios.post('/api/projects', {
+                projectId: projectId,
+                frameId: frameId,
+                messages: messages
+            })
+            console.log(result.data);
+            toast.error('Project Created!')
+            //Navigate to Playground
+            router.push(`/playground/${projectId}?frameId=${frameId}`)
+            setLoading(false)
+
+        } catch (e) {
+            toast.error('Internal Server Error! Try again later.')
+            console.log(e);
+
+        }
+    }
+
+
+
+
     return (
         <div className='flex flex-col items-center h-[80vh] justify-center'>
             {/* Header & Description */}
@@ -65,8 +109,8 @@ const Hero = () => {
                     {!user ? <SignInButton mode='modal' forceRedirectUrl={'/workspace'}>
                         <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
                     </SignInButton>
-                    :
-                    <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
+                        :
+                        <Button disabled={!userInput || loading} onClick={CreateNewProject} className='border' variant={'ghost'} size={'icon'}> {loading ? <Loader2 className='animate-spin' /> : <ArrowUp />} </Button>
                     }
                 </div>
             </div>

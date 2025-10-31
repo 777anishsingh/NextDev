@@ -10,6 +10,7 @@ import {
   UserButton,
 } from '@clerk/nextjs'
 import Provider from "./Provider";
+import { Toaster } from "sonner";
 
 const outfit = Outfit({ subsets: ['latin'] })
 
@@ -34,6 +35,7 @@ export default function RootLayout({
         >
           <Provider>
             {children}
+            <Toaster/>
           </Provider>
 
         </body>
