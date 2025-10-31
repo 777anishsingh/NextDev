@@ -15,19 +15,19 @@ function Provider({
         user && createNewUser();
     }, [user])
 
-    const [userDeatil, setUserDeatil] = useState<any>()
+    const [userDetail, setUserDetail] = useState<any>()
 
 
 
     const createNewUser = async () => {
         const result = await axios.post('/api/users', {})
         console.log(result.data);
-        setUserDeatil(result.data?.user)
+        setUserDetail(result.data?.user)
     }
 
     return (
         <div>
-            <UserDetailContext.Provider value={{ userDeatil, setUserDeatil }}>
+            <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
 
                 {children}
             </UserDetailContext.Provider>
