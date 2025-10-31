@@ -1,6 +1,6 @@
 "use client"
 import { Button } from '@/components/ui/button'
-import { SignInButton } from '@clerk/nextjs'
+import { SignInButton, useUser } from '@clerk/nextjs'
 import { ArrowUp, ArrowUpSquareIcon, HomeIcon, ImagePlus, Key, LayoutDashboard, User } from 'lucide-react'
 import React, { useState } from 'react'
 
@@ -41,6 +41,7 @@ const Hero = () => {
     const [userInput, setUserInput] = useState<string>()
 
 
+    const user = useUser()
     return (
         <div className='flex flex-col items-center h-[80vh] justify-center'>
             {/* Header & Description */}
@@ -61,9 +62,12 @@ const Hero = () => {
                 />
                 <div className='flex justify-between'>
                     <Button className='border' variant={'ghost'} size={'icon'}> <ImagePlus /></Button>
-                    <SignInButton mode='modal' forceRedirectUrl={'/workspace'}>
+                    {!user ? <SignInButton mode='modal' forceRedirectUrl={'/workspace'}>
                         <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
                     </SignInButton>
+                    :
+                    <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
+                    }
                 </div>
             </div>
 
