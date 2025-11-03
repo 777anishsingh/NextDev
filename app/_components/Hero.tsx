@@ -71,7 +71,7 @@ const Hero = () => {
                 messages: messages
             })
             console.log(result.data);
-            toast.error('Project Created!')
+            toast.success('Project Created!')
             //Navigate to Playground
             router.push(`/playground/${projectId}?frameId=${frameId}`)
             setLoading(false)
@@ -79,6 +79,7 @@ const Hero = () => {
         } catch (e) {
             toast.error('Internal Server Error! Try again later.')
             console.log(e);
+            setLoading(false)
 
         }
     }

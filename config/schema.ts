@@ -1,4 +1,4 @@
-import { json, timestamp } from "drizzle-orm/pg-core";
+import { json, text, timestamp } from "drizzle-orm/pg-core";
 import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
 
 //user schema
@@ -12,15 +12,15 @@ export const usersTable = pgTable("users", {
 //website generator schemas
 export const projectTable = pgTable("projects", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  projectId: varchar(),
-  designCode: varchar(),
+  projectId: varchar().unique(),
   createdBy: varchar().references(() => usersTable.email),
   createdOn: timestamp().defaultNow(),
 });
 
 export const frameTable = pgTable("frames", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  frameId: varchar(),
+  frameId: varchar().unique(),
+  designCode: text(),
   projectId: varchar().references(() => projectTable.projectId),
   createdOn: timestamp().defaultNow(),
 });
