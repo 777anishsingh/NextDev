@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
 
   //save chat messages logic here
   const chatResult = await db.insert(chatTable).values({
+    frameId: frameId,
     chatMessage: messages,
     createdBy: user?.primaryEmailAddress?.emailAddress,
   });
