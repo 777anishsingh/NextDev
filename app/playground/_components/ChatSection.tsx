@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Messages } from '../[projectId]/page'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, Loader2, Loader2Icon } from 'lucide-react'
+import { ArrowUp, Ghost, Loader2, Loader2Icon } from 'lucide-react'
 
 type Props = {
   messages: Messages[]
@@ -36,7 +36,7 @@ const ChatSection = ({ messages, onSend, loading }: Props) => {
 
 
   return (
-    <div className='w-93 border-b rounded-lg shadow h-[91vh] flex flex-col'>
+    <div className='w-xl border-b rounded-lg shadow h-[91vh] flex flex-col'>
 
 
       {/* message section */}
@@ -48,7 +48,7 @@ const ChatSection = ({ messages, onSend, loading }: Props) => {
             messages.map((msg, index) => (
               <div key={index} className={`flex ${msg.role == 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`p-2 rounded-lg max-w-[80%]
-                  ${msg.role == 'user' ? 'bg-blue-200 text-black' : 'bg-gray-400 text-black'}`}>
+                  ${msg.role == 'user' ? 'bg-blue-300 text-black' : 'bg-gray-300 text-black'}`}>
                   {msg.content}
                 </div>
               </div>

@@ -10,15 +10,18 @@ const WorkspaceLayout = ({
 }>) => {
 
     return (
-        <SidebarProvider>
-            <AppSidebar />
+        <div className='bg-amber-200'>
 
-            <div className='w-full'>
-                <AppHeader />
-                {children}
-            </div>
+            <SidebarProvider>
+                <AppSidebar />
 
-        </SidebarProvider>
+                <div className='w-full'>
+                    <AppHeader />
+                    {children}
+                </div>
+
+            </SidebarProvider>
+        </div>
     )
 }
 
