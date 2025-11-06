@@ -7,6 +7,7 @@ import ElementSettingSection from '../_components/ElementSettingSection'
 import { useParams, useSearchParams } from 'next/navigation'
 import axios from 'axios'
 import { previousDay } from 'date-fns'
+import { toast } from 'sonner'
 
 
 
@@ -41,12 +42,18 @@ const PlayGround = () => {
     }, [frameId])
 
     const getFrameDetails = async () => {
-        const result = await axios.get('/api/frames?frameId=' + frameId + '&projectId=' + projectId)
+        const result = await axios.get(`/api/frames?frameId=${frameId}&projectId=${projectId}`)
         setFrameDetail(result.data)
         // console.log(result.data);
+        const designCode = result.data?.designCode
+        const index = designCode.indexOf("'''html") + 7
+        const formattedCode = designCode.slice(index)
+        setGeneratedCode(formattedCode)
         if (result.data?.chatMessages?.length == 1) {
             const userMsg = result.data?.chatMessages[0].content
             SendMessage(userMsg)
+        } else {
+            setMessages(result.data?.chatMessages)
         }
 
     }
@@ -55,7 +62,7 @@ const PlayGround = () => {
 
                     Instructions:
 
-                    1. If the user input is explicitly asking to generate code, design, or HTML/CSS/JS output (e.g., "Create a landing page", "Build a dashboard", "Generate HTML Tailwind CSS code"), then:
+                    1. If the user input is explicitly asking to generate code, design, or HTML/CSS/JS output and the output should always start with <Html> and close with </html> (e.g., "Create a landing page", "Build a dashboard", "Generate HTML Tailwind CSS code"), then:
 
                     - Generate a complete HTML Tailwind CSS code using Flowbite UI components.  
                     - Use a modern design with **blue as the primary color theme**.  
@@ -93,7 +100,6 @@ const PlayGround = () => {
 
 
 
-    // ...existing code...
     const SendMessage = async (userInput: string) => {
         setLoading(true)
         setGeneratedCode('') // reset previous code
@@ -133,8 +139,9 @@ const PlayGround = () => {
                 const htmlIndex = lower.indexOf('<!doctype');
                 const htmlTagIndex = lower.indexOf('<html');
                 const bodyIndex = lower.indexOf('<body');
+                const ElementIndex = lower.indexOf('<div');
 
-                const codeMarkerIndices = [fenceIndex, htmlIndex, htmlTagIndex, bodyIndex].filter(i => i >= 0);
+                const codeMarkerIndices = [fenceIndex, htmlIndex, htmlTagIndex, ElementIndex, bodyIndex].filter(i => i >= 0);
                 if (codeMarkerIndices.length > 0) {
                     isCode = true;
                     const splitIndex = Math.min(...codeMarkerIndices);
@@ -165,6 +172,8 @@ const PlayGround = () => {
             }
         }
 
+
+
         // after streaming ends - only push non-code assistant text
         if (!isCode) {
             setMessages((prev: any) => [
@@ -177,21 +186,46 @@ const PlayGround = () => {
         } else {
             setMessages((prev: any) => [
                 ...prev,
+
                 {
                     role: 'assistant',
                     content: 'Your Code is ready'
                 }
+
             ]);
+            await saveGeneratedCode(aiResponse)
         }
+
 
         setLoading(false)
     }
-    // ...existing code...
 
     useEffect(() => {
-        console.log(generatedCode);
+        if (messages.length > 0) {
+            saveMessages();
+        }
 
-    }, [generatedCode])
+    }, [messages])
+
+    const saveMessages = async () => {
+        const result = await axios.put('/api/chats', {
+            messages,
+            frameId
+        })
+
+        console.log(result);
+    }
+
+
+    const saveGeneratedCode = async (code: string) => {
+        const result = await axios.put('/api/frames', {
+            designCode: code,
+            frameId: frameId,
+            projectId: projectId
+        })
+        console.log(result.data);
+        toast.success("Website is Ready!")
+    }
 
 
     if (isLoading) return <div>Loading...</div>
@@ -199,13 +233,13 @@ const PlayGround = () => {
         <div>
             <PlaygroundHeader />
             <div className='flex'>
-                {/* CHat Section */}
+                {/* Chat Section */}
                 <ChatSection messages={messages ?? []}
                     onSend={(input: string) => SendMessage(input)}
                     loading={loading}
                 />
                 {/* Website Design */}
-                <WebsiteDesign />
+                <WebsiteDesign generatedCode={generatedCode.replace('```', '')} />
                 {/* Setting section */}
                 {/* elementSetting Section */}
             </div>

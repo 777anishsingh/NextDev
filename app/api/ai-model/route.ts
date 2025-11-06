@@ -8,56 +8,107 @@ export async function POST(req: NextRequest) {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "minimax/minimax-m2:free", // or any OpenRouter-supported model
+        model: "minimax/minimax-m2:free", //minimax/minimax-m2:free for advanced website design
         messages,
-        stream: true, // enable streaming
+        stream: true,
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000", // optional
-          "X-Title": "My Next.js App", // optional
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "My Next.js App",
         },
-        responseType: "stream", // important for streaming
+        responseType: "stream",
       }
     );
 
     const stream = response.data;
-
-    // Return as a web stream so frontend can consume
     const encoder = new TextEncoder();
+    let closed = false;
 
     const readable = new ReadableStream({
       async start(controller) {
         stream.on("data", (chunk: any) => {
           const payloads = chunk.toString().split("\n\n");
+
           for (const payload of payloads) {
+            // ✅ Handle stream completion safely
             if (payload.includes("[DONE]")) {
-              controller.close();
+              if (!closed) {
+                closed = true;
+                // Small delay allows any trailing chunks to finish
+                setTimeout(() => {
+                  try {
+                    controller.close();
+                  } catch (err) {
+                    console.warn("Attempted to close an already closed stream");
+                  }
+                }, 50);
+              }
               return;
             }
+
+            // ✅ Handle normal stream data
             if (payload.startsWith("data:")) {
+              const jsonStr = payload.replace("data:", "").trim();
+
+              // Ignore empty or incomplete payloads
+              if (
+                !jsonStr ||
+                !jsonStr.startsWith("{") ||
+                !jsonStr.endsWith("}")
+              ) {
+                return;
+              }
+
               try {
-                const data = JSON.parse(payload.replace("data:", ""));
-                const text = data.choices[0]?.delta?.content;
-                if (text) {
-                  controller.enqueue(encoder.encode(text));
+                const data = JSON.parse(jsonStr);
+                const text = data.choices?.[0]?.delta?.content;
+
+                if (text && !closed) {
+                  try {
+                    controller.enqueue(encoder.encode(text));
+                  } catch (err: any) {
+                    console.warn(
+                      "Attempted to enqueue after close:",
+                      err?.message
+                    );
+                  }
                 }
-              } catch (err) {
-                console.error("Error parsing stream", err);
+              } catch (err: any) {
+                console.warn("Skipping malformed JSON chunk:", jsonStr);
               }
             }
           }
         });
 
+        // ✅ Handle natural stream end
         stream.on("end", () => {
-          controller.close();
+          if (!closed) {
+            closed = true;
+            try {
+              controller.close();
+            } catch (err) {
+              console.warn("Stream already closed on end");
+            }
+          }
         });
 
+        // ✅ Handle stream errors
         stream.on("error", (err: any) => {
-          console.error("Stream error", err);
-          controller.error(err);
+          console.error("Stream error:", err);
+          if (!closed) {
+            closed = true;
+            try {
+              controller.error(err);
+            } catch (err2) {
+              console.warn(
+                "Attempted to enqueue after close:",
+                (err as Error)?.message
+              );
+            }
+          }
         });
       },
     });

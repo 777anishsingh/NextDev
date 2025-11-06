@@ -52,6 +52,13 @@ const Hero = () => {
 
     const [loading, setLoading] = useState(false)
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            CreateNewProject()
+        }
+    }
+
     const CreateNewProject = async () => {
 
         setLoading(true)
@@ -102,13 +109,13 @@ const Hero = () => {
 
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-
+                    onKeyDown={handleKeyDown}
                     className='w-full h-24 focus:outline-none focus:ring-0 resize-none'
                 />
                 <div className='flex justify-between'>
                     <Button className='border' variant={'ghost'} size={'icon'}> <ImagePlus /></Button>
                     {!user ? <SignInButton mode='modal' forceRedirectUrl={'/workspace'}>
-                        <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
+                        <Button disabled={!userInput}   className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
                     </SignInButton>
                         :
                         <Button disabled={!userInput || loading} onClick={CreateNewProject} className='border' variant={'ghost'} size={'icon'}> {loading ? <Loader2 className='animate-spin' /> : <ArrowUp />} </Button>
