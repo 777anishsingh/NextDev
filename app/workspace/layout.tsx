@@ -10,7 +10,7 @@ const WorkspaceLayout = ({
 }>) => {
 
     return (
-        <div className='bg-amber-200'>
+        <div>
 
             <SidebarProvider>
                 <AppSidebar />

@@ -81,11 +81,11 @@ function WebsiteDesign({ generatedCode }: Prop) {
 
   return (
 
-    <div className=" p-5 w-full flex items-center flex-col">
+    <div className="p-5 w-full flex items-center flex-col ">
 
       <iframe
         ref={iframeRef}
-        className={`${selectedScreenSize == 'web' ? 'w-full' : 'w-[430px]'} h-[560px] border-2 rounded'}`}
+        className={`${selectedScreenSize == 'web' ? 'w-full h-[560px] border-2 rounded-2xl bg-black' : 'w-[430px h-[560px] border-2 rounded-2xl bg-black]'}`}
         sandbox="allow-scripts allow-same-origin"
       />
       <WebPageTools selectedScreenSize={selectedScreenSize}
