@@ -26,7 +26,7 @@ const ViewCode = ({ children, code }: any) => {
 
     return (
         <Dialog>
-            <DialogTrigger>{children}</DialogTrigger>
+            <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className='min-w-7xl max-h-[600px] overflow-auto'>
                 <DialogHeader>
                     <DialogTitle>
