@@ -36,7 +36,7 @@ const ChatSection = ({ messages, onSend, loading }: Props) => {
 
 
   return (
-    <div className='w-xl border-b rounded-lg shadow h-[91vh] flex flex-col'>
+    <div className='w-sm border-b rounded-lg shadow h-[91vh] flex flex-col'>
 
 
       {/* message section */}

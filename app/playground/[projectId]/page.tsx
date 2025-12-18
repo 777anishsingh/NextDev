@@ -217,7 +217,7 @@ const PlayGround = () => {
     }
 
 
-    const saveGeneratedCode = async (code: string) => {
+    const saveGeneratedCode = async (code?: string) => {
         const result = await axios.put('/api/frames', {
             designCode: code,
             frameId: frameId,
@@ -240,8 +240,7 @@ const PlayGround = () => {
                 />
                 {/* Website Design */}
                 <WebsiteDesign generatedCode={generatedCode.replace('```', '')} />
-                {/* Setting section */}
-                {/* elementSetting Section */}
+
             </div>
         </div>
     )

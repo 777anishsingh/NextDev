@@ -107,7 +107,7 @@ function WebPageTools({ selectedScreenSize, setSelectedScreenSize, generatedCode
                 <Button className="border-2" variant={'outline'}
                     onClick={() => viewOnNewTab()}>View<SquareArrowOutUpRight /></Button>
                 <ViewCode code={finalCode}>
-                    <Button className="border-2" variant={'outline'}>View<Code2 /></Button>
+                    <Button className="border-2" variant={'outline'}>Code<Code2 /></Button>
                 </ViewCode>
                 <Button onClick={downloadCode} className="border-2" variant={'outline'}>Download<Download /></Button>
             </div>
