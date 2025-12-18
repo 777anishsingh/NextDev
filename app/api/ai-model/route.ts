@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "minimax/minimax-m2:free", //minimax/minimax-m2:free for advanced website design
+        model: "kwaipilot/kat-coder-pro:free", //minimax/minimax-m2:free for advanced website design
         messages,
         stream: true,
       },
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
               return;
             }
 
-            // ✅ Handle normal stream data
+            // Handle normal stream data
             if (payload.startsWith("data:")) {
               const jsonStr = payload.replace("data:", "").trim();
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
           }
         });
 
-        // ✅ Handle natural stream end
+        // Handle natural stream end
         stream.on("end", () => {
           if (!closed) {
             closed = true;
