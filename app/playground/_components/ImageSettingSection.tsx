@@ -1,4 +1,5 @@
 "use client";
+import ImageKit from "imagekit";
 import React, { useRef, useState } from "react";
 import {
     Image as ImageIcon,
@@ -6,6 +7,8 @@ import {
     Expand,
     Image as ImageUpscale, // no lucide-react upscale, using Image icon
     ImageMinus,
+    Loader2Icon,
+    CopyIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,12 +23,21 @@ type Props = {
     selectedEl: HTMLImageElement;
 };
 
+
+
 const transformOptions = [
-    { label: "Smart Crop", value: "smartcrop", icon: <Crop /> },
-    { label: "Resize", value: "resize", icon: <Expand /> },
-    { label: "Upscale", value: "upscale", icon: <ImageUpscale /> },
-    { label: "BG Remove", value: "bgremove", icon: <ImageMinus /> },
+    { label: "Smart Crop", value: "smartcrop", icon: <Crop />, transformation: 'fo-auto' },
+    { label: "Shadow", value: "shadow", icon: <CopyIcon />, transformation: 'e-shadow' },
+    { label: "Upscale", value: "upscale", icon: <ImageUpscale />, transformation: 'e-upscale' },
+    { label: "BG Remove", value: "bgremove", icon: <ImageMinus />, transformation: 'e-bgremove' },
 ];
+
+
+var imagekit = new ImageKit({
+    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!,
+    privateKey: process.env.NEXT_PUBLIC_IMAGEKIT_PRIVATE_KEY!,
+    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!
+});
 
 function ImageSettingSection({ selectedEl }: Props) {
     const [altText, setAltText] = useState(selectedEl.alt || "");
@@ -37,6 +49,8 @@ function ImageSettingSection({ selectedEl }: Props) {
     const [preview, setPreview] = useState(selectedEl.src || "");
     const [activeTransforms, setActiveTransforms] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [selectedImage, setSelectedImage] = useState<File>()
+    const [loading, setLoading] = useState(false)
 
     // Toggle transform
     const toggleTransform = (value: string) => {
@@ -52,6 +66,7 @@ function ImageSettingSection({ selectedEl }: Props) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setSelectedImage(file)
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreview(reader.result as string);
@@ -59,6 +74,46 @@ function ImageSettingSection({ selectedEl }: Props) {
             reader.readAsDataURL(file);
         }
     };
+
+    const saveUploadedFile = async () => {
+        if (selectedImage) {
+            setLoading(true)
+            const imageRef = await imagekit.upload({
+                // @ts-ignore
+                file: selectedImage,
+                fileName: Date.now() + ".png",
+                isPublished: true
+            })
+            console.log(imageRef)
+            // @ts-ignore
+            selectedEl.setAttribute('src', imageRef?.url + "tr=")
+            setLoading(false)
+        }
+    }
+
+    const generateAiImage = () => {
+        setLoading(true)
+
+        const url = `https://ik.imagekit.io/dvf0dwm9d/ik-genimg-prompt-${altText}/${Date.now()}.png?tr=`
+        setPreview(url)
+        selectedEl.setAttribute('src', url)
+    }
+
+    const ApplyTransformation = (trValue: any) => {
+        setLoading(true)
+
+
+        if (preview.includes(trValue)) {
+            const url = preview + trValue + ','
+            setPreview(url)
+            selectedEl.setAttribute('src', url)
+        } else {
+            const url = preview.replaceAll(trValue + ",", "")
+            setPreview(url)
+            selectedEl.setAttribute('src', url)
+        }
+
+    }
 
     const openFileDialog = () => {
         fileInputRef.current?.click();
@@ -77,6 +132,7 @@ function ImageSettingSection({ selectedEl }: Props) {
                     alt={altText}
                     className="max-h-40 object-contain border rounded cursor-pointer hover:opacity-80"
                     onClick={openFileDialog}
+                    onLoad={() => setLoading(false)}
                 />
             </div>
 
@@ -94,8 +150,10 @@ function ImageSettingSection({ selectedEl }: Props) {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={openFileDialog}
+                onClick={saveUploadedFile}
+                disabled={loading}
             >
+                {loading && <Loader2Icon className="animate-spin" />}
                 Upload Image
             </Button>
 
@@ -111,7 +169,9 @@ function ImageSettingSection({ selectedEl }: Props) {
                 />
             </div>
 
-            <Button className="w-full">
+            <Button className="w-full" onClick={generateAiImage} disabled={loading}>
+                {loading && <Loader2Icon className="animate-spin" />}
+
                 Generate AI Image
             </Button>
 
@@ -127,9 +187,9 @@ function ImageSettingSection({ selectedEl }: Props) {
                                     <TooltipTrigger asChild>
                                         <Button
                                             type="button"
-                                            variant={applied ? "default" : "outline"}
+                                            variant={preview.includes(opt.transformation) ? "default" : "outline"}
                                             className="flex items-center justify-center p-2"
-                                            onClick={() => toggleTransform(opt.value)}
+                                            onClick={() => ApplyTransformation(opt.transformation)}
                                         >
                                             {opt.icon}
                                         </Button>

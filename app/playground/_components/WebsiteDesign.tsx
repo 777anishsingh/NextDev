@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import WebPageTools from "./WebPageTools";
 import ElementSettingSection from "./ElementSettingSection";
+import ImageSettingSection from "./ImageSettingSection";
 
 type Prop = {
   generatedCode: string
@@ -17,10 +18,9 @@ function WebsiteDesign({ generatedCode }: Prop) {
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="description" content="AI Website Builder - Modern TailwindCSS + Flowbite Template">
-          <title>AI Website Builder</title>
-
-          <!-- Tailwind CSS -->
-          <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>  
+  </head>
 
 
       </head>
@@ -96,20 +96,20 @@ function WebsiteDesign({ generatedCode }: Prop) {
       }
     };
 
-  doc.body?.addEventListener("mouseover", handleMouseOver);
-  doc.body?.addEventListener("mouseout", handleMouseOut);
-  doc.body?.addEventListener("click", handleClick);
-  // key events on the iframe window are more reliable
-  iframeRef.current.contentWindow?.addEventListener("keydown", handleKeyDown);
+    doc.body?.addEventListener("mouseover", handleMouseOver);
+    doc.body?.addEventListener("mouseout", handleMouseOut);
+    doc.body?.addEventListener("click", handleClick);
+    // key events on the iframe window are more reliable
+    iframeRef.current.contentWindow?.addEventListener("keydown", handleKeyDown);
 
     // Cleanup on unmount
     return () => {
-    doc.body?.removeEventListener("mouseover", handleMouseOver);
-    doc.body?.removeEventListener("mouseout", handleMouseOut);
-    doc.body?.removeEventListener("click", handleClick);
-    iframeRef.current?.contentWindow?.removeEventListener("keydown", handleKeyDown);
+      doc.body?.removeEventListener("mouseover", handleMouseOver);
+      doc.body?.removeEventListener("mouseout", handleMouseOut);
+      doc.body?.removeEventListener("click", handleClick);
+      iframeRef.current?.contentWindow?.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [generatedCode]);
 
 
 
@@ -123,9 +123,13 @@ function WebsiteDesign({ generatedCode }: Prop) {
     if (root) {
       root.innerHTML =
         (generatedCode || '')
-          ?.replaceAll("```html", "")
-          .replaceAll("```", "")
-          .replace("html", "") ?? "";
+          ?.replace(/```html/gi, "")
+          .replace(/```/g, "")
+          .replace(/<\/?html.*?>/gi, "")
+          .replace(/<\/?head.*?>/gi, "")
+          .replace(/<\/?body.*?>/gi, "")
+          .replace(/<meta[^>]*>/gi, "")
+          .replace(/<title[^>]*>.*?<\/title>/gi, "") ?? "";
     }
   }, [generatedCode]);
 
@@ -136,7 +140,7 @@ function WebsiteDesign({ generatedCode }: Prop) {
 
         <iframe
           ref={iframeRef}
-          className={`${selectedScreenSize == 'web' ? 'w-full h-[560px] border-2 rounded-2xl  ' : 'w-[430px] h-[560px] border-2 rounded-2xl bg-black'}`}
+          className={`${selectedScreenSize == 'web' ? 'w-full h-[560px] border-2 rounded-2xl bg-[#1B1D1D] ' : 'w-[430px] h-[560px] border-2 rounded-2xl bg-[#1B1D1D]'}`}
           sandbox="allow-scripts allow-same-origin"
         />
         <WebPageTools selectedScreenSize={selectedScreenSize}
@@ -144,8 +148,18 @@ function WebsiteDesign({ generatedCode }: Prop) {
           generatedCode={generatedCode}
         />
       </div>
+      {/* <ElementSettingSection selectedEl={selectedElement} clearSelection={() => setSelectedElement(null)} /> */}
+
+
       {/* @ts-ignore */}
-      <ElementSettingSection selectedEl={selectedElement} clearSelection={() => setSelectedElement(null)} />
+      {selectedElement?.tagName === "IMG" ? (<ImageSettingSection selectedEl={selectedElement} />
+      ) : selectedElement ? (
+        <ElementSettingSection
+          selectedEl={selectedElement}
+          clearSelection={() => setSelectedElement(null)}
+        />
+      ) : null}
+
     </div>
   );
 }
