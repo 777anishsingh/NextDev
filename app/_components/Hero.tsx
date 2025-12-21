@@ -1,10 +1,11 @@
 "use client"
 import { Button } from '@/components/ui/button'
-import { SignInButton, useUser } from '@clerk/nextjs'
+import { UserDetailContext } from '@/context/UserDetailContext'
+import { SignInButton, useAuth, useUser } from '@clerk/nextjs'
 import axios from 'axios'
 import { ArrowUp, ArrowUpSquareIcon, HomeIcon, ImagePlus, Key, LayoutDashboard, Loader2, LoaderCircle, LucideLoader, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -42,15 +43,18 @@ const generateRandomFrameNumber = () => {
 
 
 const Hero = () => {
-
-
+    const { has } = useAuth()
     const [userInput, setUserInput] = useState<string>()
-
     const user = useUser()
-
     const router = useRouter()
-
     const [loading, setLoading] = useState(false)
+    const context = useContext(UserDetailContext);
+
+    if (!context) {
+        throw new Error("Hero must be used within UserDetailContext.Provider");
+    }
+
+    const { userDetail, setUserDetail } = context; const hasUnlimitedAccess = has && has({ plan: 'unlimited' })
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -60,6 +64,11 @@ const Hero = () => {
     }
 
     const CreateNewProject = async () => {
+
+        if (hasUnlimitedAccess && userDetail?.credits! <= 0) {
+            toast.error('You have no credits left. Please upgrade your plan')
+            return
+        }
 
         setLoading(true)
         const projectId = uuidv4()
@@ -75,12 +84,17 @@ const Hero = () => {
             const result = await axios.post('/api/projects', {
                 projectId: projectId,
                 frameId: frameId,
-                messages: messages
+                messages: messages,
+                credits: userDetail?.credits
             })
             console.log(result.data);
             toast.success('Project Created!')
             //Navigate to Playground
             router.push(`/playground/${projectId}?frameId=${frameId}`)
+            setUserDetail((prev: any) => ({
+                ...prev,
+                credits: prev?.credits! - 1
+            }));
             setLoading(false)
 
         } catch (e) {
@@ -115,7 +129,7 @@ const Hero = () => {
                 <div className='flex justify-between'>
                     <Button className='border' variant={'ghost'} size={'icon'}> <ImagePlus /></Button>
                     {!user ? <SignInButton mode='modal' forceRedirectUrl={'/workspace'}>
-                        <Button disabled={!userInput}   className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
+                        <Button disabled={!userInput} className='border' variant={'ghost'} size={'icon'}> <ArrowUp /></Button>
                     </SignInButton>
                         :
                         <Button disabled={!userInput || loading} onClick={CreateNewProject} className='border' variant={'ghost'} size={'icon'}> {loading ? <Loader2 className='animate-spin' /> : <ArrowUp />} </Button>
