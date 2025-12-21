@@ -51,7 +51,9 @@ export function AppSidebar() {
         <Sidebar>
             <SidebarHeader >
                 <div className="flex items-center gap-2">
-                    <Image src={'/logo.svg'} alt='logo' height={30} width={30} />
+                    <Link href={'/'}>
+                        <Image src={'/logo.svg'} alt='logo' height={30} width={30} />
+                    </Link>
                     <h2 className="font-bold text-xl">NextDev</h2>
                 </div>
                 <Link href={'/workspace'} className="mt-3 w-full"  >
@@ -69,14 +71,14 @@ export function AppSidebar() {
                         <h2 className="text-sm px-2 text-gray-500">No Project Found</h2>}
                     <div>
                         {(!loading && projectList.length > 0) ? projectList.map((project: any, index) => (
-                            <Link href={`/playground/${project.projectId}?frameId=${project.frameId}`}>
-                                <div key={index} className="border mb-2 bg-gray-200 cursor-pointer rounded-lg hover:bg-gray-300">
+                            <Link key={`${project.projectId}-${project.frameId}`} href={`/playground/${project.projectId}?frameId=${project.frameId}`}>
+                                <div key={index} className="border p-1 dark:bg-black text-black dark:text-white mb-2 bg-gray-200 cursor-pointer rounded-xl transition-transform duration-200 hover:scale-105 hover:bg-slate-300">
                                     <h2 className="line-clamp-1 p-1">{project?.chats[0].chatMessage[0]?.content}</h2>
                                 </div>
                             </Link>
                         )) :
                             [1, 2, 3, 4, 5].map((_, index) => (
-                                <Skeleton className="w-full h-5 bg-slate-300 rounded-lg mb-5" />
+                                <Skeleton key={index} className="w-full h-5 bg-slate-300 rounded-lg mb-5" />
                             ))
                         }
                     </div>

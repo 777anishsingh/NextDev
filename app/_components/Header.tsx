@@ -7,6 +7,7 @@ import Image from 'next/image'
 import React from 'react'
 import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 
 const MenuOptions = [
@@ -14,9 +15,10 @@ const MenuOptions = [
         name: 'Pricing',
         path: '/pricing'
     },
+
     {
-        name: 'Contact us',
-        path: '/contact-us'
+        name: 'About Developer',
+        path: '/about'
     }
 ]
 
@@ -35,11 +37,17 @@ function Header() {
             {/*Menu Options */}
             <div className='flex gap-3'>
                 {MenuOptions.map((menu, index) => (
-                    <Button variant={'ghost'} key={index}>
-                        {menu.name}
-                    </Button>
+                    <Link key={menu.path} href={menu.path}>
+                        <Button variant={'ghost'} key={index}>
+                            {menu.name}
+                        </Button>
+                    </Link>
                 ))}
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                </div>
             </div>
+
 
 
             {/* Get started Button */}
