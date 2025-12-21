@@ -76,20 +76,31 @@ function ImageSettingSection({ selectedEl }: Props) {
     };
 
     const saveUploadedFile = async () => {
-        if (selectedImage) {
-            setLoading(true)
+        if (!selectedImage) return;
+
+        setLoading(true);
+
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+            const base64File = reader.result as string;
+
             const imageRef = await imagekit.upload({
-                // @ts-ignore
-                file: selectedImage,
-                fileName: Date.now() + ".png",
-                isPublished: true
-            })
-            console.log(imageRef)
-            // @ts-ignore
-            selectedEl.setAttribute('src', imageRef?.url + "tr=")
-            setLoading(false)
-        }
-    }
+                file: base64File, // ✅ base64 string
+                fileName: `${Date.now()}.png`,
+            });
+
+            const finalUrl = imageRef.url + "?tr=";
+
+            setPreview(finalUrl);
+            selectedEl.setAttribute("src", finalUrl);
+
+            setLoading(false);
+        };
+
+        reader.readAsDataURL(selectedImage);
+    };
+
 
     const generateAiImage = () => {
         setLoading(true)
