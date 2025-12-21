@@ -1,7 +1,7 @@
 "use client"
 import { Button } from '@/components/ui/button'
 import { UserDetailContext } from '@/context/UserDetailContext'
-import { SignInButton, useAuth, useUser } from '@clerk/nextjs'
+import { SignInButton, useAuth, useClerk, useUser } from '@clerk/nextjs'
 import axios from 'axios'
 import { ArrowUp, ArrowUpSquareIcon, HomeIcon, ImagePlus, Key, LayoutDashboard, Loader2, LoaderCircle, LucideLoader, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -49,6 +49,8 @@ const Hero = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const context = useContext(UserDetailContext);
+    const { openSignIn } = useClerk()
+
 
     if (!context) {
         throw new Error("Hero must be used within UserDetailContext.Provider");
@@ -98,9 +100,17 @@ const Hero = () => {
             setLoading(false)
 
         } catch (e) {
-            toast.error('Internal Server Error! Try again later.')
-            console.log(e);
             setLoading(false)
+
+            if (!user) {
+                toast.error('Internal Server Error! Try again later.')
+                console.log(e)
+            }
+            openSignIn({
+                redirectUrl: '/workspace',
+            })
+            return
+
 
         }
     }
