@@ -79,7 +79,13 @@ Before running this application, make sure you have:
    bun install
    ```
 
-3. **Set up environment variables**
+3. **Set up openrouter's API key & environment variables**
+
+Set up your preferred **LLM model API key** using one of the free models available on **OpenRouter**.
+
+In this project, we use **`kwaipilot/kat-coder-pro:free`**, a **free OpenRouter model with over 106B tokens**, making it suitable for generating complex UI layouts and long-form code.
+
+> ⚠️ **Important:** Do **not** use the **Gemini free API** for this project, as it may cause unstable behavior and response failures.
 
    Create a `.env.local` file in the root directory and add the following variables:
    ```env
