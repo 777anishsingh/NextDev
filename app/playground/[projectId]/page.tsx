@@ -42,21 +42,35 @@ const PlayGround = () => {
     }, [frameId])
 
     const getFrameDetails = async () => {
-        const result = await axios.get(`/api/frames?frameId=${frameId}&projectId=${projectId}`)
-        setFrameDetail(result.data)
-        // console.log(result.data);
-        const designCode = result.data?.designCode
-        const index = designCode.indexOf("'''html") + 7
-        const formattedCode = designCode.slice(index)
-        setGeneratedCode(formattedCode)
-        if (result.data?.chatMessages?.length == 1) {
-            const userMsg = result.data?.chatMessages[0].content
-            SendMessage(userMsg)
+        const result = await axios.get(
+            `/api/frames?frameId=${frameId}&projectId=${projectId}`
+        );
+
+        setFrameDetail(result.data);
+
+        const designCode = result.data?.designCode;
+
+        if (!designCode || typeof designCode !== "string") {
+            setGeneratedCode("");
         } else {
-            setMessages(result.data?.chatMessages)
+            const fence = "```html";
+            const fenceIndex = designCode.toLowerCase().indexOf(fence);
+
+            const formattedCode =
+                fenceIndex !== -1
+                    ? designCode.slice(fenceIndex + fence.length)
+                    : designCode;
+
+            setGeneratedCode(formattedCode);
         }
 
-    }
+        if (result.data?.chatMessages?.length === 1) {
+            SendMessage(result.data.chatMessages[0].content);
+        } else {
+            setMessages(result.data?.chatMessages ?? []);
+        }
+    };
+
 
     const Prompt = `userInput: {userInput}
 
@@ -67,7 +81,7 @@ const PlayGround = () => {
                     - Generate a complete HTML Tailwind CSS code using Flowbite UI components.  
                     - Use a modern design with **blue as the primary color theme**.  
                     - Only include the <body> content (do not add <head> or <title>).  
-                    - Make it fully responsive for all screen sizes such as Mobile Screens, Laptop screens, Tab Screens and TV Screens  
+                    - Make it fully responsive for all screen sizes  
                     - Always include a toggle using icons of sun and moon for dark and light mode on the header section with light mode on by default
                     - All primary components must match the theme color.  
                     - Add proper padding and margin for each element.  
@@ -240,7 +254,7 @@ const PlayGround = () => {
                     loading={loading}
                 />
                 {/* Website Design */}
-                <WebsiteDesign generatedCode={generatedCode.replace('```', '')} />
+                <WebsiteDesign generatedCode={(generatedCode || "").replace(/```/g, "")} />
 
             </div>
         </div>

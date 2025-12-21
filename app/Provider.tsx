@@ -28,13 +28,15 @@ function Provider({
 
     return (
         <div>
+
             <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+
                 <onSaveContext.Provider value={{ onSaveData, setOnSaveData }}>
 
                     {children}
                 </onSaveContext.Provider>
-
             </UserDetailContext.Provider>
+
         </div>
     )
 }
