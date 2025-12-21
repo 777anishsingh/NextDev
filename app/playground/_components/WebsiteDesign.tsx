@@ -1,7 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import WebPageTools from "./WebPageTools";
 import ElementSettingSection from "./ElementSettingSection";
 import ImageSettingSection from "./ImageSettingSection";
+import { onSaveContext } from "@/context/onSaveContext";
+import { log } from "node:console";
+import axios from "axios";
+import { toast } from "sonner";
+import { useParams, useSearchParams } from "next/navigation";
 
 type Prop = {
   generatedCode: string
@@ -11,6 +16,11 @@ function WebsiteDesign({ generatedCode }: Prop) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [selectedScreenSize, setSelectedScreenSize] = useState('web')
   const [selectedElement, setSelectedElement] = useState<HTMLElement | null>()
+  const { onSaveData, setOnSaveData } = useContext(onSaveContext)
+  const { projectId } = useParams()
+  const params = useSearchParams()
+  const frameId = params.get('frameId')
+
   const HTML_CODE = `
       <!DOCTYPE html>
       <html lang="en">
@@ -19,7 +29,46 @@ function WebsiteDesign({ generatedCode }: Prop) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="description" content="AI Website Builder - Modern TailwindCSS + Flowbite Template">
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>  
+    <script src="https://cdn.tailwindcss.com"></script> 
+    
+        <!-- Flowbite CSS & JS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <!-- Font Awesome / Lucide -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- AOS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+
+    <!-- Swiper -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <!-- Tippy.js -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tippy.js@6/dist/tippy.css"
+    />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
   </head>
 
 
@@ -72,7 +121,7 @@ function WebsiteDesign({ generatedCode }: Prop) {
       }
 
       selectedEl = target;
-      selectedEl.style.outline = "2px solid blue";
+      selectedEl.style.outline = "4px solid #00FF00";
       selectedEl.setAttribute("contenteditable", "true");
       selectedEl.focus();
       console.log("Selected element:", selectedEl);
@@ -132,6 +181,44 @@ function WebsiteDesign({ generatedCode }: Prop) {
           .replace(/<title[^>]*>.*?<\/title>/gi, "") ?? "";
     }
   }, [generatedCode]);
+
+
+  useEffect(() => {
+    onSaveData && onSaveCode();
+  }, [onSaveData])
+
+  const onSaveCode = async () => {
+    if (iframeRef.current) {
+      try {
+
+        const iframeDoc = iframeRef.current.contentDocument
+          || iframeRef.current.contentWindow?.document
+
+        if (iframeDoc) {
+          const cloneDoc = iframeDoc.documentElement.cloneNode(true) as HTMLElement
+          // remove all outlines
+          const AllEls = cloneDoc.querySelectorAll<HTMLElement>("*")
+          AllEls.forEach((el) => {
+            el.style.outline = '';
+            el.style.cursor = ''
+          })
+          const html = cloneDoc.outerHTML
+          console.log("HTML to Save", html);
+
+          const result = await axios.put('/api/frames', {
+            designCode: html,
+            frameId: frameId,
+            projectId: projectId
+          })
+          console.log(result.data);
+          toast.success("Saved!")
+
+        }
+      } catch (error) {
+
+      }
+    }
+  }
 
   return (
 
