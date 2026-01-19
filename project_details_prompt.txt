@@ -1,0 +1,249 @@
+# Comprehensive Project Analysis Prompt for LLM: NextDEV - AI Developer
+
+## Project Overview
+NextDEV is a SaaS web application that leverages artificial intelligence to generate, edit, and export beautiful web designs from natural language descriptions. It provides a seamless design-to-code experience, allowing users to describe desired web pages in plain English and watch AI create responsive designs. The application includes features like an interactive playground for editing, code export, project management, secure authentication, pricing tiers, and a modern UI built with Radix UI and Tailwind CSS. It is built with Next.js 15, React 19, TypeScript, and uses Clerk for authentication, Drizzle ORM with Neon PostgreSQL for database, and integrates with AI models via OpenRouter (specifically kwaipilot/kat-coder-pro:free for design generation).
+
+## Tech Stack
+### Frontend
+- **Next.js 15**: React framework with App Router for server-side rendering and API routes.
+- **React 19**: Latest React with concurrent features for efficient UI updates.
+- **TypeScript**: Type-safe development with strict mode enabled.
+- **Tailwind CSS 4**: Utility-first CSS framework for styling.
+- **Radix UI**: Accessible component library for UI elements like dialogs, dropdowns, etc.
+- **Lucide React**: Icon library for consistent iconography.
+- **Next Themes**: Theme provider for dark/light mode support.
+- **Sonner**: Toast notifications for user feedback.
+- **React Hook Form**: Form handling with Zod validation.
+- **React Syntax Highlighter**: Code syntax highlighting for exported designs.
+- **Recharts**: Chart library for potential analytics (though not heavily used in current code).
+- **Embla Carousel**: Carousel component for UI.
+- **Vaul**: Drawer component for mobile interactions.
+- **Input OTP**: OTP input for forms.
+- **React Resizable Panels**: Resizable panels for playground layout.
+- **Date Fns**: Date utilities.
+- **Axios**: HTTP client for API calls.
+- **Class Variance Authority**: Utility for component variants.
+- **ClsX**: Conditional class names.
+- **Tailwind Merge**: Merging Tailwind classes.
+- **UUID**: Unique ID generation for projects and frames.
+- **Zod**: Schema validation for forms and data.
+
+### Backend & Database
+- **Next.js API Routes**: Serverless API endpoints for handling requests.
+- **Clerk**: Authentication and user management, including sign-in/sign-up, user profiles, and middleware for route protection.
+- **Drizzle ORM**: Type-safe database operations with Neon serverless PostgreSQL.
+- **Neon**: Serverless PostgreSQL database for data storage.
+- **ImageKit**: Image optimization and management (configured but not deeply used in current code).
+
+### Development Tools
+- **ESLint**: Code linting (implied in setup).
+- **TypeScript Compiler**: Type checking with specific config (target ES2017, lib includes DOM, strict mode).
+- **Drizzle Kit**: Database migrations and schema management.
+- **TSX**: TypeScript execution for scripts.
+- **Tw Animate CSS**: Animation utilities.
+- **PostCSS**: CSS processing with Tailwind.
+
+### Environment & Deployment
+- **Node.js 18+**: Required runtime.
+- **NPM/Yarn/PNPM/Bun**: Package managers.
+- **Vercel**: Implied deployment platform (from public/vercel.svg).
+- **Git**: Version control.
+
+## Architecture
+The application follows a Next.js App Router structure:
+- **app/**: Main application directory with pages, components, and API routes.
+- **components/**: Reusable UI components, including shadcn/ui components.
+- **config/**: Database configuration and schema definitions.
+- **context/**: React contexts for user details and save state.
+- **hooks/**: Custom hooks, e.g., use-mobile for responsive design.
+- **lib/**: Utility functions, e.g., utils.ts for class merging.
+- **public/**: Static assets like icons and SVGs.
+
+Key architectural patterns:
+- **Server Components**: Default in Next.js for performance.
+- **Client Components**: Marked with "use client" for interactivity (e.g., Header, Hero).
+- **API Routes**: Handle backend logic, database operations, and AI integration.
+- **Middleware**: Clerk middleware for authentication on protected routes.
+- **Context Providers**: UserDetailContext and onSaveContext for state management.
+- **Database ORM**: Drizzle for type-safe queries.
+- **Authentication Flow**: Clerk handles sign-in, redirects to workspace after auth.
+- **Credit System**: Users have credits deducted on project creation (unless unlimited plan).
+
+## Database Schema
+The database uses PostgreSQL with the following tables defined in config/schema.ts:
+
+### usersTable
+- id: integer (primary key, auto-generated)
+- name: varchar(255), not null
+- email: varchar(255), not null, unique
+- credits: integer, default 3
+
+### projectTable
+- id: integer (primary key, auto-generated)
+- projectId: varchar, unique
+- createdBy: varchar (references usersTable.email)
+- createdOn: timestamp, default now
+
+### frameTable
+- id: integer (primary key, auto-generated)
+- frameId: varchar, unique
+- designCode: text (stores generated design code)
+- projectId: varchar (references projectTable.projectId)
+- createdOn: timestamp, default now
+
+### chatTable
+- id: integer (primary key, auto-generated)
+- chatMessage: json (stores chat messages as JSON)
+- frameId: varchar (references frameTable.frameId)
+- createdBy: varchar (references usersTable.email)
+- createdOn: timestamp, default now
+
+Relationships:
+- Users create projects.
+- Projects contain frames.
+- Frames are linked to chats.
+- All tables have createdOn timestamps for tracking.
+
+## API Endpoints
+### /api/projects (POST)
+- Creates a new project, frame, and initial chat message.
+- Inputs: projectId, frameId, messages (array of chat messages), credits.
+- Uses Clerk auth to get current user.
+- Inserts into projectTable, frameTable, chatTable.
+- Deducts credits from usersTable if not unlimited plan.
+- Returns projectId, frameId, messages.
+
+### /api/users (POST)
+- Creates a new user record if not exists on login (called in Provider.tsx).
+- Checks if user exists by email, inserts with name, email, credits=3 if new.
+- Returns user data.
+
+### /api/chats (PUT)
+- Updates chat messages for a frame.
+- Inputs: messages (JSON), frameId.
+- Updates chatTable.chatMessage where frameId matches.
+
+### /api/frames (GET)
+- Retrieves frame data with associated chat messages.
+- Inputs: frameId (query param).
+- Returns frame data merged with chatMessages array.
+
+### /api/frames (PUT)
+- Updates design code for a frame.
+- Inputs: designCode, frameId, projectId.
+- Updates frameTable.designCode where frameId and projectId match.
+
+### /api/ai-model (POST)
+- Streams AI-generated responses from OpenRouter.
+- Uses model: "kwaipilot/kat-coder-pro:free".
+- Inputs: messages (array).
+- Streams response as text/plain, handling JSON chunks, completion, and errors.
+- Environment: OPENROUTER_API_KEY.
+
+### /api/get-all-projects (route.ts)
+- Retrieves all projects for a user (for workspace view).
+
+## Components
+### Layout Components
+- **app/layout.tsx**: Root layout with ClerkProvider, ThemeProvider, Provider (context), DesktopOnly, Toaster.
+- **app/page.tsx**: Homepage with Header and Hero.
+
+### Header (app/_components/Header.tsx)
+- Navigation bar with logo, menu options (Pricing, About Developer), theme toggle.
+- Sign-in button via Clerk, redirects to /workspace.
+- Responsive design.
+
+### Hero (app/_components/Hero.tsx)
+- Main input area for design description.
+- Textarea for user input, with Enter key submit.
+- Suggestions: Dashboard, SignUp Form, Hero, User Profile Card.
+- Creates project via /api/projects on submit.
+- Checks credits, handles unlimited access.
+- Redirects to /playground/[projectId] after creation.
+
+### Provider (app/Provider.tsx)
+- Calls /api/users on user login to create user record.
+- Provides UserDetailContext and onSaveContext.
+
+### Other Components (not fully read)
+- Playground components: ChatSection, ElementSettingSection, ImageSettingSection, PlaygroundHeader, ViewCode, WebPageTools, WebsiteDesign.
+- Workspace components: AppHeader, AppSidebar.
+- UI components: Extensive shadcn/ui library (accordion, button, card, etc.).
+- ThemeToggle, DesktopOnly.
+
+## Authentication
+- **Clerk Integration**: Handles sign-in/sign-up with modal or redirect.
+- **Middleware**: Protects routes except public ones (/sign-in, /sign-up, /, /about, /pricing).
+- **User Creation**: On login, Provider calls /api/users to insert user into database.
+- **Credits System**: Users start with 3 credits, deducted on project creation unless unlimited plan.
+- **Plan Checks**: Uses Clerk's has() for unlimited access.
+
+## AI Integration
+- **OpenRouter API**: Uses kwaipilot/kat-coder-pro:free model for design generation.
+- **API Key**: Stored in .env.local as AI_API_KEY.
+- **Design Generation**: User input sent to AI model to generate HTML/CSS/JS code.
+- **Chat Interactions**: Likely stored in chatTable for conversation history.
+- **Free Model**: Chosen for cost-effectiveness, but may have limitations.
+
+## Features
+- **AI Design Generation**: Natural language to web design.
+- **Interactive Playground**: Edit designs in real-time.
+- **Code Export**: Export generated code.
+- **Project Management**: Workspace for managing projects.
+- **Pricing Tiers**: Free with credits, unlimited plans.
+- **Responsive Design**: Mobile-first designs.
+- **Modern UI**: Radix UI + Tailwind.
+- **Theme Support**: Dark/light mode.
+- **Authentication**: Secure user accounts.
+- **Image Handling**: ImageKit for optimization.
+- **Notifications**: Sonner toasts for feedback.
+
+## Key Workflows
+1. **User Sign-In**: Via Clerk, creates user in DB.
+2. **Design Creation**: User inputs description in Hero, submits, creates project/frame/chat, deducts credit, redirects to playground.
+3. **Playground Editing**: User edits design, saves changes.
+4. **Code Export**: Export generated code.
+5. **Project Management**: View all projects in workspace.
+
+## Configuration Files
+- **package.json**: Scripts (dev, build, start), dependencies as listed.
+- **tsconfig.json**: TypeScript config with paths, strict mode.
+- **drizzle.config.ts**: Database config for migrations.
+- **next.config.ts**: Next.js config (not read, but standard).
+- **postcss.config.mjs**: PostCSS for Tailwind.
+- **middleware.ts**: Clerk middleware for auth.
+- **tailwind.config.js**: Tailwind config (implied).
+
+## Environment Variables
+- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+- CLERK_SECRET_KEY
+- DATABASE_URL (Neon)
+- NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+- IMAGEKIT_PUBLIC_KEY
+- IMAGEKIT_PRIVATE_KEY
+- AI_API_KEY (OpenRouter)
+
+## Potential Interview Questions and Theory
+Based on this project, generate possible interview questions covering:
+- React/Next.js concepts (App Router, Server Components, API Routes).
+- TypeScript usage in a full-stack app.
+- Database design with Drizzle ORM and PostgreSQL.
+- Authentication with Clerk.
+- AI integration and API handling.
+- UI/UX with Radix UI and Tailwind.
+- State management with contexts.
+- Credit system and business logic.
+- Deployment and environment setup.
+- Code organization and best practices.
+- Performance considerations (SSR, image optimization).
+- Security (middleware, auth).
+- Testing (not implemented, but discuss importance).
+- Scalability (serverless DB, API design).
+
+Include theory on:
+- Modern web development stacks.
+- AI in web design.
+- SaaS business models.
+- Full-stack development with Next.js.
+- Database relationships and migrations.
+- Component libraries and design systems.
