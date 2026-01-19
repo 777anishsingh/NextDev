@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "kwaipilot/kat-coder-pro:free", //minimax/minimax-m2:free for advanced website design
+        model: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", //minimax/minimax-m2:free for advanced website design
         messages,
         stream: true,
       },
