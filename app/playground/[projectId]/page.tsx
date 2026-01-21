@@ -76,16 +76,18 @@ const PlayGround = () => {
 
                     Instructions:
 
-                    1. If the user input is explicitly asking to generate code, design, or HTML/CSS/JS output and the output should always start with <Html> and close with </html> (e.g., "Create a landing page", "Build a dashboard", "Generate HTML Tailwind CSS code"), then:
+                    - If the user input is explicitly asking to generate code, design, or HTML/CSS/JS output and the output should always start with <Html> and close with </html> (e.g., "Create a landing page", "Build a dashboard", "Generate HTML Tailwind CSS code"), then:
                     - Do not add any extra text before or after the HTML code other than the code itself.
+                    - Only provide the user with code and not any other text or context when asked for code
                     - Generate a complete HTML Tailwind CSS code using Flowbite UI components.  
                     - Use a modern design with **blue as the primary color theme**.  
-                    - Only include the <body> content (do not add <head> or <title>).  
+                    - Only include the <body> content (do not add <head> or <title>). 
+                    - Always include a toggle for dark and light mode on the header with sun being the symbol of light mode and moon is for dark mode section with light mode on by default with full working functionality
                     - Make it fully responsive for all screen sizes  
-                    - Always include a toggle using icons of sun and moon for dark and light mode on the header section with light mode on by default
                     - All primary components must match the theme color.  
                     - Add proper padding and margin for each element.  
                     - Components should be independent; do not connect them.  
+                    
                     - Use placeholders for all images:  
                         - Light mode: https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg
                         - Dark mode: https://www.cibaky.com/wp-content/uploads/2015/12/placeholder-3.jpg
